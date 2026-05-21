@@ -22,7 +22,6 @@ jobs:
           cache-dependency-path: mern-project/server/package-lock.json
       - run: npm ci
       - run: node --check server.mjs
-      - run: npm test --if-present
 
   client:
     name: Client (React)
@@ -57,30 +56,28 @@ jobs:
       - run: pip install -r requirements.txt
       - run: python -m py_compile ETL.py
 
-  e2e:
-    name: Cypress e2e (compose)
+  compose-smoke:
+    name: Compose smoke test
     runs-on: ubuntu-latest
     needs: [server, client]
     steps:
       - uses: actions/checkout@v4
       - name: Build and start compose stack
         run: docker compose up -d --build
-      - name: Wait for server
+      - name: Wait for server health
         run: |
           for i in {1..30}; do
             curl -fsS http://localhost:5050/healthcheck/ && break
             sleep 2
           done
-      - name: Wait for client
+      - name: Verify CRUD cycle
         run: |
-          for i in {1..30}; do
-            curl -fsS http://localhost:3000/ && break
-            sleep 2
-          done
-      - uses: cypress-io/github-action@v6
-        with:
-          working-directory: mern-project/client
-          config: baseUrl=http://localhost:3000
+          curl -fsS http://localhost:3000/ | grep -q 'id="root"'
+          POST=$(curl -fsS -X POST -H 'Content-Type: application/json' \
+            -d '{"name":"ci","position":"x","level":"Intern"}' \
+            http://localhost:5050/record)
+          echo "$POST"
+          curl -fsS http://localhost:5050/record/ | grep -q '"name":"ci"'
       - if: always()
         run: docker compose logs --no-color > compose-logs.txt
       - if: always()

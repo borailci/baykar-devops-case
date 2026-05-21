@@ -41,6 +41,8 @@ terraform/crash.log
 terraform/crash.*.log
 terraform/terraform.tfvars
 terraform/*.auto.tfvars
+terraform/tfplan
+terraform/tfplan*
 terraform/override.tf
 terraform/override.tf.json
 terraform/*_override.tf
@@ -71,3 +73,4 @@ coverage/
 # Kube
 kubeconfig
 *.kubeconfig
+CLAUDE.md

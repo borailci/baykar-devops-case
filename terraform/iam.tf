@@ -85,26 +85,24 @@ resource "aws_iam_role_policy" "gha_deploy" {
   policy = data.aws_iam_policy_document.gha_deploy[0].json
 }
 
-# Map the deployer role into the EKS cluster as cluster-admin via aws-auth.
-resource "kubernetes_config_map_v1_data" "aws_auth_extra" {
-  count = var.github_repo == "" ? 0 : 1
+# Grant the GHA deployer role cluster-admin via EKS access entries
+# (module 20.x default: API_AND_CONFIG_MAP). Does not touch aws-auth.
+resource "aws_eks_access_entry" "gha_deployer" {
+  count         = var.github_repo == "" ? 0 : 1
+  cluster_name  = module.eks.cluster_name
+  principal_arn = aws_iam_role.github_actions[0].arn
+  type          = "STANDARD"
+}
 
-  metadata {
-    name      = "aws-auth"
-    namespace = "kube-system"
+resource "aws_eks_access_policy_association" "gha_deployer_admin" {
+  count         = var.github_repo == "" ? 0 : 1
+  cluster_name  = module.eks.cluster_name
+  principal_arn = aws_iam_role.github_actions[0].arn
+  policy_arn    = "arn:aws:iam::aws:policy/AmazonEKSClusterAdminPolicy"
+
+  access_scope {
+    type = "cluster"
   }
 
-  data = {
-    mapRoles = yamlencode([
-      {
-        rolearn  = aws_iam_role.github_actions[0].arn
-        username = "gha-deployer"
-        groups   = ["system:masters"]
-      },
-    ])
-  }
-
-  force = true
-
-  depends_on = [module.eks]
+  depends_on = [aws_eks_access_entry.gha_deployer]
 }
