@@ -1,0 +1,62 @@
+===== kubectl get all -n mern =====
+
+NAME                          READY   STATUS      RESTARTS        AGE     IP           NODE                                        NOMINATED NODE   READINESS GATES
+pod/client-57d9486b75-4d9xm   1/1     Running     0               8m50s   10.0.1.107   ip-10-0-1-41.eu-north-1.compute.internal    <none>           <none>
+pod/client-57d9486b75-9jp7j   1/1     Running     0               8m54s   10.0.3.78    ip-10-0-3-199.eu-north-1.compute.internal   <none>           <none>
+pod/etl-29656440-fq5d2        0/1     Completed   0               27m     10.0.1.18    ip-10-0-1-41.eu-north-1.compute.internal    <none>           <none>
+pod/mongo-0                   1/1     Running     0               8m31s   10.0.3.53    ip-10-0-3-199.eu-north-1.compute.internal   <none>           <none>
+pod/server-76855fb8d5-bsspx   1/1     Running     0               8m3s    10.0.1.82    ip-10-0-1-41.eu-north-1.compute.internal    <none>           <none>
+pod/server-76855fb8d5-s582j   1/1     Running     1 (8m22s ago)   8m54s   10.0.3.127   ip-10-0-3-199.eu-north-1.compute.internal   <none>           <none>
+
+NAME                     TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)     AGE   SELECTOR
+service/client           ClusterIP   172.20.149.12   <none>        80/TCP      36m   app=client
+service/mongo            ClusterIP   172.20.45.200   <none>        27017/TCP   36m   app=mongo
+service/mongo-headless   ClusterIP   None            <none>        27017/TCP   36m   app=mongo
+service/server           ClusterIP   172.20.82.211   <none>        5050/TCP    36m   app=server
+
+NAME                             CLASS    HOSTS   ADDRESS                                                           PORTS   AGE
+ingress.networking.k8s.io/mern   <none>   *       k8s-mern-mern-d5fba22978-340659514.eu-north-1.elb.amazonaws.com   80      36m
+
+NAME                     READY   AGE   CONTAINERS   IMAGES
+statefulset.apps/mongo   1/1     36m   mongo        mongo:7
+
+NAME                     READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES                                                                   SELECTOR
+deployment.apps/client   2/2     2            2           36m   client       057548897384.dkr.ecr.eu-north-1.amazonaws.com/mern-client:f7142e2b8fdd   app=client
+deployment.apps/server   2/2     2            2           36m   server       057548897384.dkr.ecr.eu-north-1.amazonaws.com/mern-server:f7142e2b8fdd   app=server
+
+NAME                                         REFERENCE           TARGETS              MINPODS   MAXPODS   REPLICAS   AGE
+horizontalpodautoscaler.autoscaling/server   Deployment/server   cpu: <unknown>/70%   2         6         2          36m
+
+NAME                SCHEDULE    TIMEZONE   SUSPEND   ACTIVE   LAST SCHEDULE   AGE   CONTAINERS   IMAGES                                                                  SELECTOR
+cronjob.batch/etl   0 * * * *   <none>     False     0        27m             36m   etl          057548897384.dkr.ecr.eu-north-1.amazonaws.com/python-etl:f7142e2b8fdd   <none>
+
+===== kubectl describe ingress mern -n mern =====
+
+Name:             mern
+Labels:           <none>
+Namespace:        mern
+Address:          k8s-mern-mern-d5fba22978-340659514.eu-north-1.elb.amazonaws.com
+Ingress Class:    <none>
+Default backend:  <default>
+Rules:
+  Host        Path  Backends
+  ----        ----  --------
+  *           
+              /record        server:5050 (10.0.3.127:5050,10.0.1.82:5050)
+              /healthcheck   server:5050 (10.0.3.127:5050,10.0.1.82:5050)
+              /              client:80 (10.0.3.78:80,10.0.1.107:80)
+Annotations:  alb.ingress.kubernetes.io/healthcheck-path: /healthz
+              alb.ingress.kubernetes.io/listen-ports: [{"HTTP":80}]
+              alb.ingress.kubernetes.io/scheme: internet-facing
+              alb.ingress.kubernetes.io/target-type: ip
+              kubernetes.io/ingress.class: alb
+Events:
+  Type    Reason                  Age   From     Message
+  ----    ------                  ----  ----     -------
+  Normal  SuccessfullyReconciled  36m   ingress  Successfully reconciled
+
+===== nodes =====
+
+NAME                                        STATUS   ROLES    AGE   VERSION                INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                        KERNEL-VERSION                    CONTAINER-RUNTIME
+ip-10-0-1-41.eu-north-1.compute.internal    Ready    <none>   50m   v1.30.14-eks-7fcd7ec   10.0.1.41     <none>        Amazon Linux 2023.11.20260509   6.1.170-210.320.amzn2023.x86_64   containerd://2.2.3+unknown
+ip-10-0-3-199.eu-north-1.compute.internal   Ready    <none>   50m   v1.30.14-eks-7fcd7ec   10.0.3.199    <none>        Amazon Linux 2023.11.20260509   6.1.170-210.320.amzn2023.x86_64   containerd://2.2.3+unknown
