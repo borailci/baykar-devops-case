@@ -1,0 +1,47 @@
+$ aws ecr describe-repositories --region eu-north-1 --query 'repositories[].{name:repositoryName,uri:repositoryUri,scan:imageScanningConfiguration.scanOnPush}' --output table
+--------------------------------------------------------------------------------------
+|                                DescribeRepositories                                |
++-------------+-------+--------------------------------------------------------------+
+|    name     | scan  |                             uri                              |
++-------------+-------+--------------------------------------------------------------+
+|  mern-client|  True |  057548897384.dkr.ecr.eu-north-1.amazonaws.com/mern-client   |
+|  python-etl |  True |  057548897384.dkr.ecr.eu-north-1.amazonaws.com/python-etl    |
+|  mern-server|  True |  057548897384.dkr.ecr.eu-north-1.amazonaws.com/mern-server   |
++-------------+-------+--------------------------------------------------------------+
+
+$ aws ecr describe-images --region eu-north-1 --repository-name mern-client --query 'imageDetails[].[imageTags[0],imagePushedAt]' --output table
+------------------------------------------------------
+|                   DescribeImages                   |
++---------------+------------------------------------+
+|  None         |  2026-05-21T21:15:28.937000+03:00  |
+|  None         |  2026-05-21T20:50:22.219000+03:00  |
+|  None         |  2026-05-21T21:38:08.795000+03:00  |
+|  None         |  2026-05-21T20:45:59.041000+03:00  |
+|  None         |  2026-05-21T21:18:13.891000+03:00  |
+|  None         |  2026-05-21T20:45:59.541000+03:00  |
+|  f7142e2b8fdd |  2026-05-21T21:18:14.425000+03:00  |
+
+$ aws ecr describe-images --region eu-north-1 --repository-name mern-server --query 'imageDetails[].[imageTags[0],imagePushedAt]' --output table
+------------------------------------------------------
+|                   DescribeImages                   |
++---------------+------------------------------------+
+|  None         |  2026-05-21T20:45:04.223000+03:00  |
+|  None         |  2026-05-21T21:38:11.554000+03:00  |
+|  None         |  2026-05-21T21:15:30.368000+03:00  |
+|  None         |  2026-05-21T20:45:04.673000+03:00  |
+|  None         |  2026-05-21T21:18:20.928000+03:00  |
+|  None         |  2026-05-21T20:50:21.952000+03:00  |
+|  latest       |  2026-05-21T21:38:12.050000+03:00  |
+
+$ aws ecr describe-images --region eu-north-1 --repository-name python-etl --query 'imageDetails[].[imageTags[0],imagePushedAt]' --output table
+------------------------------------------------------
+|                   DescribeImages                   |
++---------------+------------------------------------+
+|  None         |  2026-05-21T21:38:19.727000+03:00  |
+|  None         |  2026-05-21T20:44:59.232000+03:00  |
+|  None         |  2026-05-21T21:18:10.353000+03:00  |
+|  None         |  2026-05-21T20:44:58.770000+03:00  |
+|  None         |  2026-05-21T20:50:22.491000+03:00  |
+|  None         |  2026-05-21T21:15:31.384000+03:00  |
+|  9421cfffafc6 |  2026-05-21T21:15:31.821000+03:00  |
+

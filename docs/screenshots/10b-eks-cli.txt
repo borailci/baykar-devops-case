@@ -1,0 +1,42 @@
+$ aws eks describe-cluster --region eu-north-1 --name mern-eks --query 'cluster.{name:name,status:status,version:version,vpc:resourcesVpcConfig.vpcId}' --output table
+------------------------------------------------------------
+|                      DescribeCluster                     |
++----------+---------+----------+--------------------------+
+|   name   | status  | version  |           vpc            |
++----------+---------+----------+--------------------------+
+|  mern-eks|  ACTIVE |  1.30    |  vpc-05eec5e0dfbfd640d   |
++----------+---------+----------+--------------------------+
+
+$ aws eks list-addons --region eu-north-1 --cluster-name mern-eks --output table
+--------------------------
+|       ListAddons       |
++------------------------+
+||        addons        ||
+|+----------------------+|
+||  aws-ebs-csi-driver  ||
+||  coredns             ||
+||  kube-proxy          ||
+||  vpc-cni             ||
+|+----------------------+|
+
+$ aws eks list-nodegroups --region eu-north-1 --cluster-name mern-eks --output table
+------------------------------------------
+|             ListNodegroups             |
++----------------------------------------+
+||              nodegroups              ||
+|+--------------------------------------+|
+||  default-20260521173605521500000003  ||
+|+--------------------------------------+|
+
+$ aws eks describe-nodegroup --region eu-north-1 --cluster-name mern-eks --nodegroup-name default-20260521173605521500000003 --query 'nodegroup.{instanceTypes:instanceTypes,status:status,desired:scalingConfig.desiredSize,min:scalingConfig.minSize,max:scalingConfig.maxSize}' --output table
+-------------------------------------
+|         DescribeNodegroup         |
++----------+------+------+----------+
+|  desired | max  | min  | status   |
++----------+------+------+----------+
+|  2       |  4   |  2   |  ACTIVE  |
++----------+------+------+----------+
+||          instanceTypes          ||
+|+---------------------------------+|
+||  t3.medium                      ||
+|+---------------------------------+|
