@@ -60,10 +60,13 @@ No static AWS keys in GitHub. The `aws-iam-openid-connect-provider` in `terrafor
 
 ## Security baseline
 
-- Containers run as non-root; `readOnlyRootFilesystem: true` on server; capabilities dropped.
+- Server runs as non-root (UID 1000) with all capabilities dropped; `readOnlyRootFilesystem: false` (server reads `config.env` via dotenv at boot — tightening to `true` with an `emptyDir /tmp` is tracked as a polish item).
+- Client image is stock `nginx:1.27-alpine`; requires `CAP_CHOWN` so the `drop: ["ALL"]` set is intentionally not applied. Migrating to `nginxinc/nginx-unprivileged` is a polish item.
+- ETL container runs as non-root, drops all capabilities.
 - Secrets via `kubectl create secret`; not committed.
 - ECR `scan_on_push = true`; lifecycle keeps last 10 images.
-- IAM least privilege via IRSA for the ALB controller; cluster admins map a dedicated CI role.
+- IRSA for the ALB controller **and** the AWS EBS CSI driver (mongo PVC).
+- GitHub Actions assumes the `gha-deployer` role via OIDC. The role is granted cluster-admin through an **EKS access entry** + access policy association (`AmazonEKSClusterAdminPolicy`); the legacy `aws-auth` ConfigMap is not touched.
 - TLS termination via ACM cert on ALB — **NOT** included; listed under out-of-scope (documented in deployment.md as next step).
 
 ## Known limitations

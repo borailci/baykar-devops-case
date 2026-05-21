@@ -37,6 +37,7 @@ Outputs include:
 cluster_name           = mern-eks
 ecr_repository_urls    = { mern-client = ..., mern-server = ..., python-etl = ... }
 gha_deployer_role_arn  = arn:aws:iam::...:role/mern-eks-gha-deployer
+sns_alarm_topic_arn    = arn:aws:sns:...:mern-eks-alarms
 kubeconfig_command     = aws eks update-kubeconfig --region ... --name ...
 ```
 

@@ -1,5 +1,21 @@
 data "aws_caller_identity" "current" {}
 
+# IRSA for AWS EBS CSI Driver
+module "ebs_csi_irsa" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "~> 5.44"
+
+  role_name             = "${var.cluster_name}-ebs-csi"
+  attach_ebs_csi_policy = true
+
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["kube-system:ebs-csi-controller-sa"]
+    }
+  }
+}
+
 # IRSA for AWS Load Balancer Controller
 module "alb_controller_irsa" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
@@ -56,10 +72,17 @@ resource "aws_iam_role" "github_actions" {
 data "aws_iam_policy_document" "gha_deploy" {
   count = var.github_repo == "" ? 0 : 1
 
-  # ECR push
+  # ECR token endpoint does not support resource-level permissions.
   statement {
+    sid       = "ECRAuth"
+    actions   = ["ecr:GetAuthorizationToken"]
+    resources = ["*"]
+  }
+
+  # Image push/pull scoped to the three repos provisioned by this stack.
+  statement {
+    sid = "ECRPushPull"
     actions = [
-      "ecr:GetAuthorizationToken",
       "ecr:BatchCheckLayerAvailability",
       "ecr:BatchGetImage",
       "ecr:GetDownloadUrlForLayer",
@@ -68,13 +91,14 @@ data "aws_iam_policy_document" "gha_deploy" {
       "ecr:UploadLayerPart",
       "ecr:CompleteLayerUpload",
     ]
-    resources = ["*"]
+    resources = [for r in aws_ecr_repository.this : r.arn]
   }
 
-  # EKS describe + token
+  # EKS describe scoped to this cluster; `update-kubeconfig` only needs DescribeCluster.
   statement {
-    actions   = ["eks:DescribeCluster", "eks:ListClusters"]
-    resources = ["*"]
+    sid       = "EKSDescribe"
+    actions   = ["eks:DescribeCluster"]
+    resources = [module.eks.cluster_arn]
   }
 }
 

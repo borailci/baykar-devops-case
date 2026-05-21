@@ -14,8 +14,8 @@ jobs:
       run:
         working-directory: mern-project/server
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: "20"
           cache: npm
@@ -30,8 +30,8 @@ jobs:
       run:
         working-directory: mern-project/client
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: "20"
           cache: npm
@@ -49,8 +49,8 @@ jobs:
       run:
         working-directory: python-project
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [server, client]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Build and start compose stack
         run: docker compose up -d --build
       - name: Wait for server health
@@ -81,7 +81,7 @@ jobs:
       - if: always()
         run: docker compose logs --no-color > compose-logs.txt
       - if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: compose-logs
           path: compose-logs.txt
