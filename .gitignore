@@ -1,0 +1,73 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Builds
+mern-project/client/build/
+mern-project/server/dist/
+
+# Env / secrets — never commit
+.env
+.env.local
+.env.*.local
+config.env
+mern-project/server/config.env
+mern-project/server/.env
+mern-project/client/.env
+
+# Real k8s secret manifests (only commit *.example.yaml)
+k8s/mongo-secret.yaml
+k8s/*-secret.yaml
+!k8s/*-secret.example.yaml
+
+# Terraform
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/*.tfstate.backup
+terraform/crash.log
+terraform/crash.*.log
+terraform/terraform.tfvars
+terraform/*.auto.tfvars
+terraform/override.tf
+terraform/override.tf.json
+terraform/*_override.tf
+terraform/*_override.tf.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+
+# Cypress
+mern-project/client/cypress/videos/
+mern-project/client/cypress/screenshots/
+
+# Docker
+*.pid
+
+# Logs
+*.log
+compose-logs.txt
+
+# Coverage
+coverage/
+
+# Kube
+kubeconfig
+*.kubeconfig

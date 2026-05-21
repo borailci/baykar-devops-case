@@ -1,0 +1,4 @@
+region       = "eu-central-1"
+cluster_name = "mern-eks"
+alert_email  = "you@example.com"
+github_repo  = "your-gh-user/devops-case"

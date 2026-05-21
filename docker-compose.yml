@@ -1,0 +1,42 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: mern-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build:
+      context: ./mern-project/server
+    container_name: mern-server
+    restart: unless-stopped
+    environment:
+      ATLAS_URI: "mongodb://mongo:27017/sample_training"
+    ports:
+      - "5050:5050"
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  client:
+    build:
+      context: ./mern-project/client
+      args:
+        REACT_APP_API_URL: "http://localhost:5050"
+    container_name: mern-client
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - server
+
+volumes:
+  mongo-data:

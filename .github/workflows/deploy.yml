@@ -1,0 +1,75 @@
+name: Deploy
+
+on:
+  workflow_call:
+    inputs:
+      image_tag:
+        description: "ECR image tag to deploy"
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "ECR image tag to deploy"
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME }}
+  NAMESPACE: mern
+
+jobs:
+  apply:
+    name: kubectl apply + rollout
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --region "$AWS_REGION" --name "$CLUSTER_NAME"
+
+      - name: Render image refs into manifests
+        run: |
+          REG="${{ steps.ecr.outputs.registry }}"
+          TAG="${{ inputs.image_tag }}"
+          find k8s -name '*.yaml' -print0 | xargs -0 sed -i \
+            -e "s|PLACEHOLDER_ECR/mern-server:latest|$REG/mern-server:$TAG|g" \
+            -e "s|PLACEHOLDER_ECR/mern-client:latest|$REG/mern-client:$TAG|g" \
+            -e "s|PLACEHOLDER_ECR/python-etl:latest|$REG/python-etl:$TAG|g"
+
+      - name: Apply manifests
+        run: |
+          kubectl apply -f k8s/namespace.yaml
+          kubectl -n "$NAMESPACE" get secret mongo-secret >/dev/null 2>&1 || \
+            kubectl -n "$NAMESPACE" create secret generic mongo-secret \
+              --from-literal=ATLAS_URI='mongodb://mongo.mern.svc.cluster.local:27017/sample_training'
+          kubectl apply -k k8s/
+
+      - name: Wait for rollouts
+        run: |
+          kubectl -n "$NAMESPACE" rollout status deployment/server --timeout=300s
+          kubectl -n "$NAMESPACE" rollout status deployment/client --timeout=300s
+          kubectl -n "$NAMESPACE" rollout status statefulset/mongo --timeout=300s
+
+      - name: Show endpoints
+        run: |
+          kubectl -n "$NAMESPACE" get ingress mern -o wide
+          kubectl -n "$NAMESPACE" get pods,svc,cronjob
