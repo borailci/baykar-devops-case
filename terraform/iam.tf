@@ -98,7 +98,7 @@ resource "aws_eks_access_policy_association" "gha_deployer_admin" {
   count         = var.github_repo == "" ? 0 : 1
   cluster_name  = module.eks.cluster_name
   principal_arn = aws_iam_role.github_actions[0].arn
-  policy_arn    = "arn:aws:iam::aws:policy/AmazonEKSClusterAdminPolicy"
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
 
   access_scope {
     type = "cluster"
