@@ -2,6 +2,8 @@
 
 # DevOps CASE — MERN + Python ETL on AWS EKS
 
+> **Author:** Bora İlci · **Repo:** https://github.com/borailci/baykar-devops-case
+
 Two workloads deployed to a single EKS cluster, with full CI/CD via GitHub Actions and IaC via Terraform.
 
 | Layer | Tech |
