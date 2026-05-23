@@ -51,6 +51,36 @@ In repo settings → Secrets and variables → Actions:
 | Variable | `AWS_REGION` | e.g. `eu-central-1` |
 | Variable | `EKS_CLUSTER_NAME` | `mern-eks` |
 
+### Sync via gh CLI (from `terraform/` directory)
+
+```bash
+gh secret   set AWS_ROLE_ARN       --body "$(terraform output -raw gha_deployer_role_arn)"
+gh variable set AWS_REGION         --body "$(terraform output -raw region)"
+gh variable set EKS_CLUSTER_NAME   --body "$(terraform output -raw cluster_name)"
+
+gh secret   list
+gh variable list
+```
+
+Updating a secret does not re-run past workflows. Trigger a new run:
+
+```bash
+gh workflow run build-and-push.yml
+# or
+git commit --allow-empty -m "rerun with new secrets" && git push
+```
+
+## 3a. Post-apply quick checks
+
+```bash
+# Kubeconfig + cluster reachability
+aws eks update-kubeconfig --region <region> --name <cluster_name>
+kubectl get nodes
+kubectl get pods -A    # aws-load-balancer-controller + fluent-bit must be Running
+
+# SNS email confirmation: check inbox, click confirm link (alarms stay silent otherwise)
+```
+
 ## 4. First deployment
 
 Trigger by pushing to `main` (or run `Build and Push` from the Actions tab manually).

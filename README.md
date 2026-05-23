@@ -42,6 +42,12 @@ curl  http://localhost:5050/healthcheck/
 
 See **[docs/deployment.md](docs/deployment.md)** — full walkthrough from `terraform init` to public ALB URL.
 
+### Live URL
+
+The cluster is not running by default — keeping EKS + NAT idle costs money, so the stack is torn down between demos. Proof of a successful live deployment is in **[docs/screenshots/](docs/screenshots/)** (browser, `kubectl`, AWS console, CloudWatch).
+
+A fresh live URL can be brought up on demand: `cd terraform && terraform apply` provisions the cluster and the GitHub Actions pipeline rolls out the workloads. The ALB DNS appears as the Ingress `ADDRESS` (`kubectl -n mern get ingress mern`) ~3–5 min after the first deploy. Total cold start: ~20–25 min. Happy to demo live before the interview — just give a heads-up.
+
 ## Operate
 
 See **[docs/runbook.md](docs/runbook.md)** — logs, rollback, scaling, alerts, common issues.
